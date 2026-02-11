@@ -22,38 +22,33 @@
 
 namespace FppTest {
 
-    namespace Array {
+namespace Array {
 
-        // Set default values for an array type
-        template <typename ArrayType>
-        void setDefaultVals
-            (typename ArrayType::ElementType (&a)[ArrayType::SIZE]) {}
+// Set default values for an array type
+template <typename ArrayType>
+void setDefaultVals(typename ArrayType::ElementType (&a)[ArrayType::SIZE]) {}
 
-        // Set test values for an array type
-        template <typename ArrayType>
-        void setTestVals
-            (typename ArrayType::ElementType (&a)[ArrayType::SIZE]);
+// Set test values for an array type
+template <typename ArrayType>
+void setTestVals(typename ArrayType::ElementType (&a)[ArrayType::SIZE]);
 
-        template <typename ArrayType>
-        ArrayType getMultiElementConstructedArray
-            (typename ArrayType::ElementType (&a)[ArrayType::SIZE]);
+template <typename ArrayType>
+ArrayType getMultiElementConstructedArray(typename ArrayType::ElementType (&a)[ArrayType::SIZE]);
 
-        // Get the serialized size of an array
-        template <typename ArrayType>
-        U32 getSerializedSize
-            (typename ArrayType::ElementType (&a)[ArrayType::SIZE]) {
-            return ArrayType::SERIALIZED_SIZE;
-        }
+// Get the serialized size of an array
+template <typename ArrayType>
+U32 getSerializedSize(typename ArrayType::ElementType (&a)[ArrayType::SIZE]) {
+    return ArrayType::SERIALIZED_SIZE;
+}
 
-    } // namespace Array
+}  // namespace Array
 
-} // namespace FppTest
-
+}  // namespace FppTest
 
 // Test an array class
 template <typename ArrayType>
 class ArrayTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() override {
         FppTest::Array::setDefaultVals<ArrayType>(defaultVals);
         FppTest::Array::setTestVals<ArrayType>(testVals);
@@ -104,8 +99,7 @@ TYPED_TEST_P(ArrayTest, Constructors) {
     }
 
     // Multiple element constructor
-    TypeParam a3 = FppTest::Array::getMultiElementConstructedArray<TypeParam>
-        (this->testVals);
+    TypeParam a3 = FppTest::Array::getMultiElementConstructedArray<TypeParam>(this->testVals);
     for (U32 i = 0; i < TypeParam::SIZE; i++) {
         ASSERT_EQ(a3[i], this->testVals[i]);
     }
@@ -176,8 +170,7 @@ TYPED_TEST_P(ArrayTest, EqualityOp) {
 TYPED_TEST_P(ArrayTest, Serialization) {
     TypeParam a(this->testVals);
 
-    U32 serializedSize = 
-        FppTest::Array::getSerializedSize<TypeParam>(this->testVals);
+    U32 serializedSize = FppTest::Array::getSerializedSize<TypeParam>(this->testVals);
     Fw::SerializeStatus status;
 
     // Test successful serialization
@@ -186,48 +179,35 @@ TYPED_TEST_P(ArrayTest, Serialization) {
     Fw::SerialBuffer buf(data, sizeof(data));
 
     // Serialize
-    status = buf.serialize(a);
+    status = buf.serializeFrom(a);
 
     ASSERT_EQ(status, Fw::FW_SERIALIZE_OK);
-    ASSERT_EQ(
-        buf.getBuffLength(), 
-        serializedSize        
-    );
+    ASSERT_EQ(buf.getSize(), serializedSize);
 
     // Deserialize
-    status = buf.deserialize(aCopy);
+    status = buf.deserializeTo(aCopy);
 
     ASSERT_EQ(status, Fw::FW_SERIALIZE_OK);
     ASSERT_EQ(a, aCopy);
 
     // Test unsuccessful serialization
     TypeParam aCopy2;
-    U8 data2[serializedSize-1];
+    U8 data2[serializedSize - 1];
     Fw::SerialBuffer buf2(data2, sizeof(data2));
 
     // Serialize
-    status = buf2.serialize(a);
-    
+    status = buf2.serializeFrom(a);
+
     ASSERT_NE(status, Fw::FW_SERIALIZE_OK);
-    ASSERT_NE(
-        buf2.getBuffLength(), 
-        serializedSize        
-    );
+    ASSERT_NE(buf2.getSize(), serializedSize);
 
     // Deserialize
-    status = buf2.deserialize(aCopy2);
+    status = buf2.deserializeTo(aCopy2);
 
     ASSERT_NE(status, Fw::FW_SERIALIZE_OK);
 }
 
 // Register all test patterns
-REGISTER_TYPED_TEST_SUITE_P(ArrayTest,
-    Default,
-    Constructors,
-    SubscriptOp,
-    AssignmentOp,
-    EqualityOp,
-    Serialization
-);
+REGISTER_TYPED_TEST_SUITE_P(ArrayTest, Default, Constructors, SubscriptOp, AssignmentOp, EqualityOp, Serialization);
 
 #endif

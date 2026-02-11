@@ -47,15 +47,32 @@ FwSizeType string_length(const CHAR* source, FwSizeType buffer_size);
  * \param sub_size: the size of the string to search for
  * \return index of substring, -1 if not found
  */
-FwSignedSizeType substring_find(const CHAR* source_string, FwSizeType source_size, const CHAR* sub_string, FwSizeType sub_size);
+FwSignedSizeType substring_find(const CHAR* source_string,
+                                FwSizeType source_size,
+                                const CHAR* sub_string,
+                                FwSizeType sub_size);
+
+/**
+ * \brief find the last occurrence of a substring
+ *
+ * \param source_string: string to search for the substring
+ * \param source_size: the size of the source string
+ * \param substring: string to search for
+ * \param sub_size: the size of the string to search for
+ * \return index of substring, -1 if not found
+ */
+FwSignedSizeType substring_find_last(const CHAR* source_string,
+                                     FwSizeType source_size,
+                                     const CHAR* sub_string,
+                                     FwSizeType sub_size);
 
 enum StringToNumberStatus {
-    SUCCESSFUL_CONVERSION, //!< Output should be valid
-    NULL_INPUT,     //!< A null string was supplied
-    INVALID_STRING, //!< No \0 detected within the supplied length
-    INVALID_BASE,   //!< Base was not supplied as 0, or 2-36
-    INVALID_NUMBER, //!< String did not contain a valid number matching supplied base
-    INVALID_RANGE,  //!<
+    SUCCESSFUL_CONVERSION,  //!< Output should be valid
+    NULL_INPUT,             //!< A null string was supplied
+    INVALID_STRING,         //!< No \0 detected within the supplied length
+    INVALID_BASE,           //!< Base was not supplied as 0, or 2-36
+    INVALID_NUMBER,         //!< String did not contain a valid number matching supplied base
+    INVALID_RANGE,          //!<
 };
 
 #if FW_HAS_64_BIT
@@ -84,7 +101,7 @@ enum StringToNumberStatus {
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U64& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U64& output, char** next, U8 base = 0);
 
 /**
  * \brief converts a string to a I64
@@ -98,7 +115,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I64& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I64& output, char** next, U8 base = 0);
 #endif
 #if FW_HAS_32_BIT
 /**
@@ -113,7 +130,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U32& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U32& output, char** next, U8 base = 0);
 
 /**
  * \brief converts a string to a I32
@@ -127,7 +144,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I32& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I32& output, char** next, U8 base = 0);
 #endif
 #if FW_HAS_16_BIT
 /**
@@ -142,7 +159,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U16& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U16& output, char** next, U8 base = 0);
 
 /**
  * \brief converts a string to a I16
@@ -156,7 +173,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I16& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I16& output, char** next, U8 base = 0);
 #endif
 
 /**
@@ -171,7 +188,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U8& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, U8& output, char** next, U8 base = 0);
 
 /**
  * \brief converts a string to a I8
@@ -185,7 +202,7 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  * \param next: (output) will contain a pointer to the next character after the number and null pointer on error
  * \return SUCCESSFUL_CONVERSION when output is valid, something else on error.
  */
-StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I8& output, char** next, U8 base=0);
+StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, I8& output, char** next, U8 base = 0);
 
 /**
  * \brief converts a string to a F32
@@ -215,8 +232,6 @@ StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size,
  */
 StringToNumberStatus string_to_number(const CHAR* input, FwSizeType buffer_size, F64& output, char** next);
 #endif
-
-
 
 }  // namespace StringUtils
 }  // namespace Fw

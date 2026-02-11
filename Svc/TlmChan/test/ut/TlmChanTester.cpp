@@ -15,7 +15,7 @@ static const FwChanIdType TEST_CHAN_SIZE = sizeof(FwChanIdType) + Fw::Time::SERI
 static const FwChanIdType CHANS_PER_COMBUFFER =
     (FW_COM_BUFFER_MAX_SIZE - sizeof(FwPacketDescriptorType)) / TEST_CHAN_SIZE;
 static constexpr FwSizeType INTEGER_DIVISION_ROUNDED_UP(FwSizeType a, FwSizeType b) {
-  return ((a % b) == 0) ? (a / b) : (a / b) + 1;
+    return ((a % b) == 0) ? (a / b) : (a / b) + 1;
 }
 
 namespace Svc {
@@ -30,7 +30,9 @@ TlmChanTester ::TlmChanTester()
     this->connectPorts();
 }
 
-TlmChanTester ::~TlmChanTester() {}
+TlmChanTester ::~TlmChanTester() {
+    this->component.deinit();
+}
 
 // ----------------------------------------------------------------------
 // Tests
@@ -124,14 +126,13 @@ void TlmChanTester::runOffNominal() {
 
     // create Telemetry item and put dummy data in to make sure it gets erased
     buff.resetSer();
-    stat = buff.serialize(val);
+    stat = buff.serializeFrom(val);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
 
     // Read back value
     Fw::TlmValid valid = this->invoke_to_TlmGet(0, 10, timeTag, buff);
-    ASSERT_EQ(0u, buff.getBuffLength());
+    ASSERT_EQ(0u, buff.getSize());
     ASSERT_EQ(valid, Fw::TlmValid::INVALID);
-
 }
 
 // ----------------------------------------------------------------------
@@ -197,7 +198,7 @@ void TlmChanTester::checkBuff(FwChanIdType chanNum, FwChanIdType totalChan, FwCh
 
             // next piece is time tag
             Fw::Time recTimeTag(TimeBase::TB_NONE, 0, 0);
-            stat = this->m_rcvdBuffer[packet].deserialize(recTimeTag);
+            stat = this->m_rcvdBuffer[packet].deserializeTo(recTimeTag);
             ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
             ASSERT_TRUE(timeTag == recTimeTag);
             // next piece is event argument
@@ -219,7 +220,7 @@ void TlmChanTester::checkBuff(FwChanIdType chanNum, FwChanIdType totalChan, FwCh
         }
 
         // packet should be empty
-        ASSERT_EQ(0, this->m_rcvdBuffer[packet].getBuffLeft());
+        ASSERT_EQ(0, this->m_rcvdBuffer[packet].getDeserializeSizeLeft());
     }
 }
 
@@ -232,7 +233,7 @@ void TlmChanTester::sendBuff(FwChanIdType id, U32 val) {
 
     // create telemetry item
     buff.resetSer();
-    stat = buff.serialize(val);
+    stat = buff.serializeFrom(val);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
 
     static bool tlc001 = false;
@@ -270,11 +271,8 @@ void TlmChanTester::dumpTlmEntry(TlmChan::TlmEntry* entry) {
     printf(
         "Entry "
         " Ptr: %p"
-        " id: 0x%" PRI_FwChanIdType
-        " bucket: %" PRI_FwChanIdType
-        " next: %p\n",
+        " id: 0x%" PRI_FwChanIdType " bucket: %" PRI_FwChanIdType " next: %p\n",
         static_cast<void*>(entry), entry->id, entry->bucketNo, static_cast<void*>(entry->next));
-    
 }
 
 void TlmChanTester::dumpHash() {

@@ -9,6 +9,16 @@ TEST(Nominal, Send) {
     tester.testQueueSend();
 }
 
+TEST(Nominal, Flush) {
+    Svc::ComQueueTester tester;
+    tester.testQueueFlush();
+}
+
+TEST(Nominal, FlushAll) {
+    Svc::ComQueueTester tester;
+    tester.testQueueFlushAll();
+}
+
 TEST(Nominal, Pause) {
     Svc::ComQueueTester tester;
     tester.testQueuePause();
@@ -39,12 +49,7 @@ TEST(Nominal, ContextData) {
     tester.testContextData();
 }
 
-TEST(Nominal, testBufferQueueReturn) {
-    Svc::ComQueueTester tester;
-    tester.testBufferQueueReturn();
-}
-
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

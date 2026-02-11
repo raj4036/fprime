@@ -10,6 +10,7 @@
 #include <Fw/Types/Assert.hpp>
 #include <Os/File.hpp>
 #include <Svc/EventManager/EventManager.hpp>
+#include <cstring>
 
 namespace Svc {
 static_assert(std::numeric_limits<FwSizeType>::max() >= TELEM_ID_FILTER_SIZE,
@@ -110,7 +111,7 @@ void EventManager::loqQueue_internalInterfaceHandler(FwEventIdType id,
     this->m_logPacket.setTimeTag(timeTag);
     this->m_logPacket.setLogBuffer(args);
     this->m_comBuffer.resetSer();
-    Fw::SerializeStatus stat = this->m_logPacket.serialize(this->m_comBuffer);
+    Fw::SerializeStatus stat = this->m_logPacket.serializeTo(this->m_comBuffer);
     FW_ASSERT(Fw::FW_SERIALIZE_OK == stat, static_cast<FwAssertArgType>(stat));
 
     if (this->isConnected_PktSend_OutputPort(0)) {

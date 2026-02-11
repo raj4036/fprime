@@ -5,9 +5,9 @@
  *      Author: tcanham
  */
 
-#include "TimeTester.hpp"
-#include "TimeIntervalTester.hpp"
 #include <gtest/gtest.h>
+#include "TimeIntervalTester.hpp"
+#include "TimeTester.hpp"
 
 // Time tests
 TEST(TimeTestNominal, InstantiateTest) {
@@ -27,6 +27,11 @@ TEST(TimeTestNominal, CopyTest) {
 TEST(TimeTestNominal, ZeroTimeEquality) {
     Fw::TimeTester tester;
     tester.test_ZeroTimeEquality();
+}
+
+TEST(TimeTestNominal, TimeToTimeValue) {
+    Fw::TimeTester tester;
+    tester.test_TimeToTimeValue();
 }
 
 // TimeInterval tests
@@ -53,6 +58,11 @@ TEST(TimeIntervalTestNominal, test_TimeIntervalAdditionTest) {
 TEST(TimeIntervalTestNominal, test_TimeIntervalSubtractionTest) {
     Fw::TimeIntervalTester tester;
     tester.test_TimeIntervalSubtractionTest();
+}
+
+TEST(TimeIntervalTestNominal, test_TimeIntervalToTimeIntervalValue) {
+    Fw::TimeIntervalTester tester;
+    tester.test_TimeIntervalToTimeIntervalValue();
 }
 
 int main(int argc, char* argv[]) {

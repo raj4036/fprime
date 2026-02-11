@@ -34,8 +34,8 @@ void Tester ::testEventHelper(FwIndexType portNum, FppTest::Types::PrimitivePara
 
     ASSERT_EVENTS_SIZE(static_cast<U32>(size));
     ASSERT_EVENTS_EventPrimitive_SIZE(static_cast<U32>(size));
-    ASSERT_EVENTS_EventPrimitive(static_cast<U32>(portNum), data.args.val1, data.args.val2, data.args.val3, data.args.val4,
-                                 data.args.val5, data.args.val6);
+    ASSERT_EVENTS_EventPrimitive(static_cast<U32>(portNum), data.args.val1, data.args.val2, data.args.val3,
+                                 data.args.val4, data.args.val5, data.args.val6);
 }
 
 void Tester ::testEvent(FwIndexType portNum, FppTest::Types::PrimitiveParams& data) {
@@ -61,7 +61,7 @@ void Tester ::testEvent(FwIndexType portNum, FppTest::Types::LogStringParams& da
 
     ASSERT_EVENTS_SIZE(1);
     ASSERT_EVENTS_EventString_SIZE(1);
-    Fw::StringTemplate<80> arg1(data.args.val1);
+    Fw::String arg1(data.args.val1);
     Fw::StringTemplate<100> arg2(data.args.val2);
     ASSERT_EVENTS_EventString(static_cast<U32>(portNum), arg1.toChar(), arg2.toChar());
 
@@ -138,6 +138,8 @@ void Tester ::testEvent(FwIndexType portNum, FppTest::Types::BoolParam& data) {
     ASSERT_TRUE(component.isConnected_eventOut_OutputPort(portNum));
     ASSERT_TRUE(component.isConnected_textEventOut_OutputPort(portNum));
 
+    this->setTestTime(Fw::Time(0, 0));
+
     for (U32 i = 0; i < component.EVENTID_EVENTBOOL_THROTTLE; i++) {
         testEventHelper(portNum, data, i + 1);
     }
@@ -145,9 +147,19 @@ void Tester ::testEvent(FwIndexType portNum, FppTest::Types::BoolParam& data) {
     // Test that throttling works
     testEventHelper(portNum, data, component.EVENTID_EVENTBOOL_THROTTLE);
 
+    // Check that the event throttle resets after the interval passes
+
+    this->setTestTime(Fw::Time(6, 0));
+    for (U32 i = 0; i < component.EVENTID_EVENTBOOL_THROTTLE; i++) {
+        testEventHelper(portNum, data, component.EVENTID_EVENTBOOL_THROTTLE + i + 1);
+    }
+
+    // Test that throttling works
+    testEventHelper(portNum, data, 2 * component.EVENTID_EVENTBOOL_THROTTLE);
+
     // Test throttle reset
     component.log_WARNING_LO_EventBool_ThrottleClear();
-    testEventHelper(portNum, data, component.EVENTID_EVENTBOOL_THROTTLE + 1);
+    testEventHelper(portNum, data, (2 * component.EVENTID_EVENTBOOL_THROTTLE) + 1);
 
     this->printTextLogHistory(stdout);
 }

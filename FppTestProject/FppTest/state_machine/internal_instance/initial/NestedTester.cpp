@@ -19,7 +19,9 @@ namespace SmInstanceInitial {
 NestedTester::NestedTester(const char* const compName)
     : NestedComponentBase(compName), m_nested_action_a_history(), m_smInitialNested_action_a_history() {}
 
-NestedTester::~NestedTester() {}
+NestedTester::~NestedTester() {
+    this->deinit();
+}
 
 // ----------------------------------------------------------------------
 // Implementations for internal state machine actions
@@ -43,7 +45,7 @@ void NestedTester::FppTest_SmInstanceInitial_Nested_Nested_action_a(
 
 void NestedTester ::smInitialNested_stateMachineOverflowHook(SmId smId,
                                                              FwEnumStoreType signal,
-                                                             Fw::SerializeBufferBase& buffer) {
+                                                             Fw::SerialBufferBase& buffer) {
     // Nothing to do
 }
 

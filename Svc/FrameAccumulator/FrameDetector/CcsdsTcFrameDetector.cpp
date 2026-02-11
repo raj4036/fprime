@@ -5,19 +5,18 @@
 // ======================================================================
 
 #include "Svc/FrameAccumulator/FrameDetector/CcsdsTcFrameDetector.hpp"
-#include "Svc/Ccsds/Types/FppConstantsAc.hpp"
 #include <cstdio>
-#include "config/FppConstantsAc.hpp"
+#include "Svc/Ccsds/Types/FppConstantsAc.hpp"
 #include "Svc/Ccsds/Types/TCHeaderSerializableAc.hpp"
 #include "Svc/Ccsds/Types/TCTrailerSerializableAc.hpp"
 #include "Svc/Ccsds/Utils/CRC16.hpp"
 #include "Utils/Hash/Hash.hpp"
+#include "config/FppConstantsAc.hpp"
 
 namespace Svc {
 namespace FrameDetectors {
 
 FrameDetector::Status CcsdsTcFrameDetector::detect(const Types::CircularBuffer& data, FwSizeType& size_out) const {
-
     if (data.get_allocated_size() < Ccsds::TCHeader::SERIALIZED_SIZE + Ccsds::TCTrailer::SERIALIZED_SIZE) {
         size_out = Ccsds::TCHeader::SERIALIZED_SIZE + Ccsds::TCTrailer::SERIALIZED_SIZE;
         return Status::MORE_DATA_NEEDED;
@@ -35,7 +34,7 @@ FrameDetector::Status CcsdsTcFrameDetector::detect(const Types::CircularBuffer& 
     FW_ASSERT(status == Fw::FW_SERIALIZE_OK, static_cast<FwAssertArgType>(status));
     // Attempt to deserialize data into the FrameHeader object
     Ccsds::TCHeader header;
-    status = header.deserialize(header_ser_buffer);
+    status = header.deserializeFrom(header_ser_buffer);
     FW_ASSERT(status == Fw::FW_SERIALIZE_OK, status);
 
     if (header.get_flagsAndScId() != this->m_expectedFlagsAndScIdToken) {
@@ -43,7 +42,8 @@ FrameDetector::Status CcsdsTcFrameDetector::detect(const Types::CircularBuffer& 
         return Status::NO_FRAME_DETECTED;
     }
     // TC protocol defines the Frame Length as number of bytes minus 1, so we add 1 back to get length in bytes
-    const FwSizeType expected_frame_length = static_cast<FwSizeType>((header.get_vcIdAndLength() & Ccsds::TCSubfields::FrameLengthMask) + 1);
+    const FwSizeType expected_frame_length =
+        static_cast<FwSizeType>((header.get_vcIdAndLength() & Ccsds::TCSubfields::FrameLengthMask) + 1);
     const U16 data_to_crc_length = static_cast<U16>(expected_frame_length - Ccsds::TCTrailer::SERIALIZED_SIZE);
 
     if (data.get_allocated_size() < expected_frame_length) {
@@ -72,7 +72,7 @@ FrameDetector::Status CcsdsTcFrameDetector::detect(const Types::CircularBuffer& 
     FW_ASSERT(status == Fw::FW_SERIALIZE_OK, static_cast<FwAssertArgType>(status));
     // Attempt to deserialize data into the FrameTrailer object
     Ccsds::TCTrailer trailer;
-    status = trailer.deserialize(trailer_ser_buffer);
+    status = trailer.deserializeFrom(trailer_ser_buffer);
     FW_ASSERT(status == Fw::FW_SERIALIZE_OK, status);
     U16 transmitted_fecf = trailer.get_fecf();
     if (transmitted_fecf != computed_fecf) {
@@ -83,7 +83,6 @@ FrameDetector::Status CcsdsTcFrameDetector::detect(const Types::CircularBuffer& 
     size_out = expected_frame_length;
     return Status::FRAME_DETECTED;
 }
-
 
 }  // namespace FrameDetectors
 }  // namespace Svc

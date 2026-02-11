@@ -69,6 +69,10 @@ void TestState ::action__BufferSendIn__OK() {
     // Check file write
     ASSERT_EQ(buffer.getSize(), fileData.pointer);
     ASSERT_EQ(0, ::memcmp(buffer.getData(), fileData.writeResult, buffer.getSize()));
+    // Check data checksum is valid for the container buffer
+    Utils::HashBuffer storedHash;
+    Utils::HashBuffer computedHash;
+    ASSERT_EQ(Fw::Success::SUCCESS, container.checkDataHash(storedHash, computedHash));
     // Update m_NumBytesWritten
     this->abstractState.m_NumBytesWritten.value += buffer.getSize();
     // Update m_NumSuccessfulWrites
@@ -171,7 +175,7 @@ void TestState ::action__BufferSendIn__InvalidHeaderHash() {
     // Perturb the header hash
     const U32 storedHash = computedHash + 1;
     Utils::HashBuffer storedHashBuffer;
-    const Fw::SerializeStatus serialStatus = storedHashBuffer.serialize(storedHash);
+    const Fw::SerializeStatus serialStatus = storedHashBuffer.serializeFrom(storedHash);
     ASSERT_EQ(serialStatus, Fw::FW_SERIALIZE_OK);
     container.setHeaderHash(storedHashBuffer);
     // Send the buffer

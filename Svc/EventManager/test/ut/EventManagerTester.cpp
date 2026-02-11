@@ -25,7 +25,9 @@ EventManagerTester::EventManagerTester(Svc::EventManager& inst)
       m_receivedPacket(false),
       m_receivedFatalEvent(false) {}
 
-EventManagerTester::~EventManagerTester() {}
+EventManagerTester::~EventManagerTester() {
+    this->m_impl.deinit();
+}
 
 void EventManagerTester::from_PktSend_handler(const FwIndexType portNum,  //!< The port number
                                               Fw::ComBuffer& data,        //!< Buffer containing packet data
@@ -55,7 +57,7 @@ void EventManagerTester::runWithFilters(Fw::LogSeverity filter) {
     U32 val = 10;
     FwEventIdType id = 29;
 
-    Fw::SerializeStatus stat = buff.serialize(val);
+    Fw::SerializeStatus stat = buff.serializeFrom(val);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     Fw::Time timeTag(TimeBase::TB_NONE, 0, 0);
     U32 cmdSeq = 21;
@@ -106,26 +108,26 @@ void EventManagerTester::runWithFilters(Fw::LogSeverity filter) {
     // verify contents
     // first piece should be log packet descriptor
     FwPacketDescriptorType desc;
-    stat = this->m_sentPacket.deserialize(desc);
+    stat = this->m_sentPacket.deserializeTo(desc);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(desc, static_cast<FwPacketDescriptorType>(Fw::ComPacketType::FW_PACKET_LOG));
     // next piece should be event ID
     FwEventIdType sentId;
-    stat = this->m_sentPacket.deserialize(sentId);
+    stat = this->m_sentPacket.deserializeTo(sentId);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(sentId, id);
     // next piece is time tag
     Fw::Time recTimeTag(TimeBase::TB_NONE, 0, 0);
-    stat = this->m_sentPacket.deserialize(recTimeTag);
+    stat = this->m_sentPacket.deserializeTo(recTimeTag);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_TRUE(timeTag == recTimeTag);
     // next piece is event argument
     U32 readVal;
-    stat = this->m_sentPacket.deserialize(readVal);
+    stat = this->m_sentPacket.deserializeTo(readVal);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(readVal, val);
     // packet should be empty
-    ASSERT_EQ(this->m_sentPacket.getBuffLeft(), 0u);
+    ASSERT_EQ(this->m_sentPacket.getDeserializeSizeLeft(), 0u);
 
     // Disable severity filter
     this->clearHistory();
@@ -145,12 +147,14 @@ void EventManagerTester::runFilterInvalidCommands() {
     U32 cmdSeq = 21;
     this->clearHistory();
     FilterSeverity reportFilterLevel = FilterSeverity::WARNING_HI;
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) intentional invalid test
     Enabled filterEnabled(static_cast<Enabled::t>(10));
     this->sendCmd_SET_EVENT_FILTER(0, cmdSeq, reportFilterLevel, filterEnabled);
     ASSERT_CMD_RESPONSE_SIZE(1);
     ASSERT_CMD_RESPONSE(0, EventManager::OPCODE_SET_EVENT_FILTER, cmdSeq, Fw::CmdResponse::FORMAT_ERROR);
     this->clearHistory();
     reportFilterLevel = FilterSeverity::WARNING_HI;
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) intentional invalid test
     filterEnabled.e = static_cast<Enabled::t>(-2);
     this->sendCmd_SET_EVENT_FILTER(0, cmdSeq, reportFilterLevel, filterEnabled);
     ASSERT_CMD_RESPONSE_SIZE(1);
@@ -158,6 +162,7 @@ void EventManagerTester::runFilterInvalidCommands() {
     FilterSeverity eventLevel;
     this->clearHistory();
     Enabled reportEnable = Enabled::ENABLED;
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) intentional invalid test
     eventLevel.e = static_cast<FilterSeverity::t>(-1);
     this->sendCmd_SET_EVENT_FILTER(0, cmdSeq, eventLevel, reportEnable);
     ASSERT_CMD_RESPONSE_SIZE(1);
@@ -166,6 +171,7 @@ void EventManagerTester::runFilterInvalidCommands() {
     this->clearHistory();
 
     reportEnable = Enabled::ENABLED;
+    // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange) intentional invalid test
     eventLevel.e = static_cast<FilterSeverity::t>(100);
     this->sendCmd_SET_EVENT_FILTER(0, cmdSeq, eventLevel, reportEnable);
     ASSERT_CMD_RESPONSE_SIZE(1);
@@ -219,7 +225,7 @@ void EventManagerTester::runFilterIdNominal() {
         U32 val = 10;
         FwEventIdType id = filterID;
 
-        Fw::SerializeStatus stat = buff.serialize(val);
+        Fw::SerializeStatus stat = buff.serializeFrom(val);
         ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
         Fw::Time timeTag(TimeBase::TB_NONE, 0, 0);
 
@@ -239,7 +245,7 @@ void EventManagerTester::runFilterIdNominal() {
     U32 val = 10;
     FwEventIdType id = 1;
 
-    Fw::SerializeStatus stat = buff.serialize(val);
+    Fw::SerializeStatus stat = buff.serializeFrom(val);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     Fw::Time timeTag(TimeBase::TB_NONE, 0, 0);
 
@@ -352,7 +358,7 @@ void EventManagerTester::runEventFatal() {
     U32 cmdSeq = 21;
     REQUIREMENT("AL-004");
 
-    Fw::SerializeStatus stat = buff.serialize(val);
+    Fw::SerializeStatus stat = buff.serializeFrom(val);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     Fw::Time timeTag(TimeBase::TB_NONE, 0, 0);
 
@@ -372,26 +378,26 @@ void EventManagerTester::runEventFatal() {
     // verify contents
     // first piece should be log packet descriptor
     FwPacketDescriptorType desc;
-    stat = this->m_sentPacket.deserialize(desc);
+    stat = this->m_sentPacket.deserializeTo(desc);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(desc, static_cast<FwPacketDescriptorType>(Fw::ComPacketType::FW_PACKET_LOG));
     // next piece should be event ID
     FwEventIdType sentId;
-    stat = this->m_sentPacket.deserialize(sentId);
+    stat = this->m_sentPacket.deserializeTo(sentId);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(sentId, id);
     // next piece is time tag
     Fw::Time recTimeTag(TimeBase::TB_NONE, 0, 0);
-    stat = this->m_sentPacket.deserialize(recTimeTag);
+    stat = this->m_sentPacket.deserializeTo(recTimeTag);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_TRUE(timeTag == recTimeTag);
     // next piece is event argument
     U32 readVal;
-    stat = this->m_sentPacket.deserialize(readVal);
+    stat = this->m_sentPacket.deserializeTo(readVal);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(readVal, val);
     // packet should be empty
-    ASSERT_EQ(this->m_sentPacket.getBuffLeft(), 0u);
+    ASSERT_EQ(this->m_sentPacket.getDeserializeSizeLeft(), 0u);
     // Turn on all filters and make sure FATAL still gets through
 
     this->clearHistory();
@@ -418,23 +424,23 @@ void EventManagerTester::runEventFatal() {
     ASSERT_TRUE(this->m_receivedPacket);
     // verify contents
     // first piece should be log packet descriptor
-    stat = this->m_sentPacket.deserialize(desc);
+    stat = this->m_sentPacket.deserializeTo(desc);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(desc, static_cast<FwPacketDescriptorType>(Fw::ComPacketType::FW_PACKET_LOG));
     // next piece should be event ID
-    stat = this->m_sentPacket.deserialize(sentId);
+    stat = this->m_sentPacket.deserializeTo(sentId);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(sentId, id);
     // next piece is time tag
-    stat = this->m_sentPacket.deserialize(recTimeTag);
+    stat = this->m_sentPacket.deserializeTo(recTimeTag);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_TRUE(timeTag == recTimeTag);
     // next piece is event argument
-    stat = this->m_sentPacket.deserialize(readVal);
+    stat = this->m_sentPacket.deserializeTo(readVal);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(readVal, val);
     // packet should be empty
-    ASSERT_EQ(this->m_sentPacket.getBuffLeft(), 0u);
+    ASSERT_EQ(this->m_sentPacket.getDeserializeSizeLeft(), 0u);
 
     // turn off filters
 
@@ -449,7 +455,7 @@ void EventManagerTester::runEventFatal() {
 void EventManagerTester::writeEvent(FwEventIdType id, Fw::LogSeverity severity, U32 value) {
     Fw::LogBuffer buff;
 
-    Fw::SerializeStatus stat = buff.serialize(value);
+    Fw::SerializeStatus stat = buff.serializeFrom(value);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     Fw::Time timeTag(TimeBase::TB_NONE, 1, 2);
 
@@ -466,26 +472,26 @@ void EventManagerTester::writeEvent(FwEventIdType id, Fw::LogSeverity severity, 
     // verify contents
     // first piece should be log packet descriptor
     FwPacketDescriptorType desc;
-    stat = this->m_sentPacket.deserialize(desc);
+    stat = this->m_sentPacket.deserializeTo(desc);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(desc, static_cast<FwPacketDescriptorType>(Fw::ComPacketType::FW_PACKET_LOG));
     // next piece should be event ID
     FwEventIdType sentId;
-    stat = this->m_sentPacket.deserialize(sentId);
+    stat = this->m_sentPacket.deserializeTo(sentId);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(sentId, id);
     // next piece is time tag
     Fw::Time recTimeTag(TimeBase::TB_NONE, 1, 2);
-    stat = this->m_sentPacket.deserialize(recTimeTag);
+    stat = this->m_sentPacket.deserializeTo(recTimeTag);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_TRUE(timeTag == recTimeTag);
     // next piece is event argument
     U32 readVal;
-    stat = this->m_sentPacket.deserialize(readVal);
+    stat = this->m_sentPacket.deserializeTo(readVal);
     ASSERT_EQ(Fw::FW_SERIALIZE_OK, stat);
     ASSERT_EQ(readVal, value);
     // packet should be empty
-    ASSERT_EQ(this->m_sentPacket.getBuffLeft(), 0u);
+    ASSERT_EQ(this->m_sentPacket.getDeserializeSizeLeft(), 0u);
 }
 
 void EventManagerTester::readEvent(FwEventIdType id, Fw::LogSeverity severity, U32 value, Os::File& file) {
@@ -508,14 +514,14 @@ void EventManagerTester::readEvent(FwEventIdType id, Fw::LogSeverity severity, U
     Fw::LogPacket packet;
     Fw::Time time(TimeBase::TB_NONE, 1, 2);
     Fw::LogBuffer logBuff;
-    ASSERT_EQ(comBuff.deserialize(packet), Fw::FW_SERIALIZE_OK);
+    ASSERT_EQ(comBuff.deserializeTo(packet), Fw::FW_SERIALIZE_OK);
 
     // read back values
     ASSERT_EQ(id, packet.getId());
     ASSERT_EQ(time, packet.getTimeTag());
     logBuff = packet.getLogBuffer();
     U32 readValue;
-    ASSERT_EQ(logBuff.deserialize(readValue), Fw::FW_SERIALIZE_OK);
+    ASSERT_EQ(logBuff.deserializeTo(readValue), Fw::FW_SERIALIZE_OK);
     ASSERT_EQ(value, readValue);
 }
 

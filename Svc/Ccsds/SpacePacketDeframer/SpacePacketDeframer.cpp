@@ -43,7 +43,7 @@ void SpacePacketDeframer ::dataIn_handler(FwIndexType portNum, Fw::Buffer& data,
     FW_ASSERT(data.getSize() > SpacePacketHeader::SERIALIZED_SIZE, static_cast<FwAssertArgType>(data.getSize()));
 
     SpacePacketHeader header;
-    Fw::SerializeStatus status = data.getDeserializer().deserialize(header);
+    Fw::SerializeStatus status = data.getDeserializer().deserializeTo(header);
     FW_ASSERT(status == Fw::FW_SERIALIZE_OK, status);
 
     // Space Packet protocol defines the Data Length as number of bytes minus 1
@@ -52,12 +52,15 @@ void SpacePacketDeframer ::dataIn_handler(FwIndexType portNum, Fw::Buffer& data,
     if (pkt_length > data.getSize() - SpacePacketHeader::SERIALIZED_SIZE) {
         FwSizeType maxDataAvailable = data.getSize() - SpacePacketHeader::SERIALIZED_SIZE;
         this->log_WARNING_HI_InvalidLength(pkt_length, maxDataAvailable);
+        if (this->isConnected_errorNotify_OutputPort(0)) {
+            this->errorNotify_out(0, Svc::Ccsds::FrameError::SP_INVALID_LENGTH);
+        }
         this->dataReturnOut_out(0, data, context);  // Drop the packet
         return;
     }
 
     U16 apidValue = header.get_packetIdentification() & SpacePacketSubfields::ApidMask;
-    ComCfg::APID::T apid = static_cast<ComCfg::APID::T>(apidValue);
+    ComCfg::Apid::T apid = static_cast<ComCfg::Apid::T>(apidValue);
     ComCfg::FrameContext contextCopy = context;
     contextCopy.set_apid(apid);
 

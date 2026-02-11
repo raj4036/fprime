@@ -20,14 +20,16 @@ ActiveTestTester ::ActiveTestTester()
       arrayBuf(arrayData, sizeof(arrayData)),
       structBuf(structData, sizeof(structData)),
       serialBuf(serialData, sizeof(serialData)),
-      time(STest::Pick::any(), STest::Pick::any()) {
+      time(STest::Pick::any(), STest::Pick::lowerUpper(0, 999999)) {
     this->initComponents();
     this->connectPorts();
     this->connectAsyncPorts();
     this->component.registerExternalParameters(&this->paramTesterDelegate);
 }
 
-ActiveTestTester ::~ActiveTestTester() {}
+ActiveTestTester ::~ActiveTestTester() {
+    this->component.deinit();
+}
 
 void ActiveTestTester ::initComponents() {
     this->init();
@@ -46,32 +48,32 @@ Fw::ParamValid ActiveTestTester ::from_prmGetIn_handler(const FwIndexType portNu
 
     switch (id - id_base) {
         case ActiveTestComponentBase::PARAMID_PARAMBOOL:
-            status = val.serialize(boolPrm.args.val);
+            status = val.serializeFrom(boolPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMU32:
-            status = val.serialize(u32Prm.args.val);
+            status = val.serializeFrom(u32Prm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMSTRING:
-            status = val.serialize(stringPrm.args.val);
+            status = val.serializeFrom(stringPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMENUM:
-            status = val.serialize(enumPrm.args.val);
+            status = val.serializeFrom(enumPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMARRAY:
-            status = val.serialize(arrayPrm.args.val);
+            status = val.serializeFrom(arrayPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMSTRUCT:
-            status = val.serialize(structPrm.args.val);
+            status = val.serializeFrom(structPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
     }
@@ -89,32 +91,32 @@ void ActiveTestTester ::from_prmSetIn_handler(const FwIndexType portNum, FwPrmId
 
     switch (id - id_base) {
         case ActiveTestComponentBase::PARAMID_PARAMBOOL:
-            status = val.deserialize(boolPrm.args.val);
+            status = val.deserializeTo(boolPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMU32:
-            status = val.deserialize(u32Prm.args.val);
+            status = val.deserializeTo(u32Prm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMSTRING:
-            status = val.deserialize(stringPrm.args.val);
+            status = val.deserializeTo(stringPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMENUM:
-            status = val.deserialize(enumPrm.args.val);
+            status = val.deserializeTo(enumPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMARRAY:
-            status = val.deserialize(arrayPrm.args.val);
+            status = val.deserializeTo(arrayPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
 
         case ActiveTestComponentBase::PARAMID_PARAMSTRUCT:
-            status = val.deserialize(structPrm.args.val);
+            status = val.deserializeTo(structPrm.args.val);
             FW_ASSERT(status == Fw::FW_SERIALIZE_OK);
             break;
     }
@@ -130,7 +132,7 @@ Fw::SerializeStatus ActiveTestTester::ActiveTestComponentBaseParamExternalDelega
     const FwPrmIdType base_id,
     const FwPrmIdType local_id,
     const Fw::ParamValid prmStat,
-    Fw::SerializeBufferBase& buff) {
+    Fw::SerialBufferBase& buff) {
     Fw::SerializeStatus stat;
     (void)base_id;
 
@@ -138,27 +140,27 @@ Fw::SerializeStatus ActiveTestTester::ActiveTestComponentBaseParamExternalDelega
     switch (local_id) {
         // ParamBoolExternal
         case ActiveTestComponentBase::PARAMID_PARAMBOOLEXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamBoolExternal);
+            stat = buff.deserializeTo(this->m_param_ParamBoolExternal);
             break;
         // ParamI32External
         case ActiveTestComponentBase::PARAMID_PARAMI32EXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamI32External);
+            stat = buff.deserializeTo(this->m_param_ParamI32External);
             break;
         // ParamStringExternal
         case ActiveTestComponentBase::PARAMID_PARAMSTRINGEXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamStringExternal);
+            stat = buff.deserializeTo(this->m_param_ParamStringExternal);
             break;
         // ParamEnumExternal
         case ActiveTestComponentBase::PARAMID_PARAMENUMEXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamEnumExternal);
+            stat = buff.deserializeTo(this->m_param_ParamEnumExternal);
             break;
         // ParamArrayExternal
         case ActiveTestComponentBase::PARAMID_PARAMARRAYEXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamArrayExternal);
+            stat = buff.deserializeTo(this->m_param_ParamArrayExternal);
             break;
         // ParamStructExternal
         case ActiveTestComponentBase::PARAMID_PARAMSTRUCTEXTERNAL:
-            stat = buff.deserialize(this->m_param_ParamStructExternal);
+            stat = buff.deserializeTo(this->m_param_ParamStructExternal);
             break;
         default:
             // Unknown ID should not have gotten here
@@ -171,7 +173,7 @@ Fw::SerializeStatus ActiveTestTester::ActiveTestComponentBaseParamExternalDelega
 Fw::SerializeStatus ActiveTestTester::ActiveTestComponentBaseParamExternalDelegate ::serializeParam(
     const FwPrmIdType base_id,
     const FwPrmIdType local_id,
-    Fw::SerializeBufferBase& buff) const {
+    Fw::SerialBufferBase& buff) const {
     Fw::SerializeStatus stat;
     (void)base_id;
 
@@ -179,27 +181,27 @@ Fw::SerializeStatus ActiveTestTester::ActiveTestComponentBaseParamExternalDelega
     switch (local_id) {
         // ParamBoolExternal
         case ActiveTestComponentBase::PARAMID_PARAMBOOLEXTERNAL:
-            stat = buff.serialize(this->m_param_ParamBoolExternal);
+            stat = buff.serializeFrom(this->m_param_ParamBoolExternal);
             break;
         // ParamI32External
         case ActiveTestComponentBase::PARAMID_PARAMI32EXTERNAL:
-            stat = buff.serialize(this->m_param_ParamI32External);
+            stat = buff.serializeFrom(this->m_param_ParamI32External);
             break;
         // ParamStringExternal
         case ActiveTestComponentBase::PARAMID_PARAMSTRINGEXTERNAL:
-            stat = buff.serialize(this->m_param_ParamStringExternal);
+            stat = buff.serializeFrom(this->m_param_ParamStringExternal);
             break;
         // ParamEnumExternal
         case ActiveTestComponentBase::PARAMID_PARAMENUMEXTERNAL:
-            stat = buff.serialize(this->m_param_ParamEnumExternal);
+            stat = buff.serializeFrom(this->m_param_ParamEnumExternal);
             break;
         // ParamArrayExternal
         case ActiveTestComponentBase::PARAMID_PARAMARRAYEXTERNAL:
-            stat = buff.serialize(this->m_param_ParamArrayExternal);
+            stat = buff.serializeFrom(this->m_param_ParamArrayExternal);
             break;
         // ParamStructExternal
         case ActiveTestComponentBase::PARAMID_PARAMSTRUCTEXTERNAL:
-            stat = buff.serialize(this->m_param_ParamStructExternal);
+            stat = buff.serializeFrom(this->m_param_ParamStructExternal);
             break;
         default:
             // Unknown ID should not have gotten here

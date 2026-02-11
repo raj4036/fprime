@@ -12,10 +12,7 @@ cmake_policy(SET CMP0048 NEW)
 cmake_minimum_required(VERSION 3.26)
 project(Ref VERSION 1.0.0 LANGUAGES C CXX)
 
-# Find the fprime package and include the core codebase
-set(FPRIME_INCLUDE_FRAMEWORK_CODE ON)
-find_package(FPrime REQUIRED PATHS "${CMAKE_CURRENT_LIST_DIR}/..")
-
+# Add compile options used by all build modules
 add_compile_options(
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
     -Wall
@@ -29,12 +26,17 @@ add_compile_options(
     -pedantic
 )
 
+# Find the fprime package and include the core codebase
+set(FPRIME_INCLUDE_FRAMEWORK_CODE ON)
+find_package(FPrime REQUIRED PATHS "${CMAKE_CURRENT_LIST_DIR}/..")
+
 # Add subdirectories for the Ref project specific components
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/PingReceiver/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/RecvBuffApp/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/SendBuffApp/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/SignalGen/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/TypeDemo/")
+add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/DpDemo/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/BlockDriver/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Top/")
 
