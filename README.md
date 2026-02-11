@@ -32,17 +32,7 @@ Learn more about [F´ key features](https://fprime.jpl.nasa.gov/overview).
 
 To get started with F´, install the F´ bootstrapping tool with:
 ```
-pip install fprime-bootstrap
-```
-
-Then, create a new project with:
-```
-fprime-bootstrap project
-```
-
-See the [HelloWorld Tutorial](https://fprime.jpl.nasa.gov/latest/tutorials-hello-world/docs/hello-world/) to guide you through all the steps of developing an F´ project.
-
-New users are encouraged to read through the [User Manual](https://fprime.jpl.nasa.gov/latest/docs/user-manual/) and explore the [other tutorials](https://fprime.jpl.nasa.gov/latest/docs/tutorials/).
+pip install fprime-bootst/latest/docs/user-manual/) and explore the [other tutorials](https://fprime.jpl.nasa.gov/latest/docs/tutorials/).
 
 
 ## Getting Help
